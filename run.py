@@ -3,6 +3,7 @@ import os
 import requests
 import telegram
 
+from datetime import time
 from dotenv import load_dotenv
 from requests.exceptions import ReadTimeout, ConnectionError
 from urllib.parse import urljoin
@@ -36,14 +37,18 @@ if __name__ == '__main__':
     load_dotenv()
     dvmn_token = os.getenv('DVMN_TOKEN')
     tg_token = os.getenv('TG_TOKEN')
-    chat_id = os.getenv('CHAT_ID')
+    chat_id = os.getenv('TG_CHAT_ID')
+
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO, filename='bot.log')
 
+    sleep_timer = 60
+    timestamp=None
+
     while True:
         try:
-            response = get_dvmn_response(dvmn_token, timestamp=None)
+            response = get_dvmn_response(dvmn_token, timestamp)
             if response['status'] == 'found':
                 timestamp = response.get('last_attempt_timestamp')
                 for attempt in response['new_attempts']:
@@ -53,6 +58,7 @@ if __name__ == '__main__':
                 timestamp = response.get('timestamp_to_request')
         except ConnectionError:
             logging.error('ConnectionError')
+            time.sleep(sleep_timer)
             continue
         except ReadTimeout:
             logging.error('ReadTimeout')
