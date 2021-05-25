@@ -2,11 +2,12 @@ import logging
 import os
 import requests
 import telegram
+import time
 
-from datetime import time
 from dotenv import load_dotenv
 from requests.exceptions import ReadTimeout, ConnectionError
 from urllib.parse import urljoin
+
 
 def send_notification(token, chat_id, message):
     bot = telegram.Bot(token)
@@ -43,8 +44,9 @@ if __name__ == '__main__':
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO, filename='bot.log')
 
-    sleep_timer = 60
-    timestamp=None
+    sleep_timer = 10 * 60
+    timestamp = None
+    connections_count = 0
 
     while True:
         try:
@@ -58,7 +60,11 @@ if __name__ == '__main__':
                 timestamp = response.get('timestamp_to_request')
         except ConnectionError:
             logging.error('ConnectionError')
-            time.sleep(sleep_timer)
+            while connections_count < 5:
+                connections_count += 1
+            else:
+                connections_count = 0
+                time.sleep(sleep_timer)
             continue
         except ReadTimeout:
             logging.error('ReadTimeout')
