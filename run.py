@@ -9,6 +9,17 @@ from requests.exceptions import ReadTimeout, ConnectionError
 from urllib.parse import urljoin
 
 
+class BotHandler(logging.Handler):
+    def __init__(self, token, chat_id):
+        logging.Handler.__init__(self)
+        self.token = token
+        self.chat_id = chat_id
+
+    def emit(self, record):
+        bot = telegram.Bot(self.token)
+        bot.send_message(chat_id=self.chat_id, text=str(record))
+
+
 def send_notification(token, chat_id, message):
     bot = telegram.Bot(token)
     bot.send_message(chat_id=chat_id, text=message)
@@ -38,11 +49,14 @@ if __name__ == '__main__':
     load_dotenv()
     dvmn_token = os.getenv('DVMN_TOKEN')
     tg_token = os.getenv('TG_TOKEN')
+    log_bot_token = os.getenv('LOGGER_TG_TOKEN')
     chat_id = os.getenv('TG_CHAT_ID')
 
-    logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.INFO, filename='bot.log')
+    logger = logging.getLogger('BotHandler')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(BotHandler(log_bot_token, chat_id))
+
+    logger.info('Bot is running')
 
     sleep_timer = 10 * 60
     timestamp = None
@@ -59,13 +73,14 @@ if __name__ == '__main__':
             else:
                 timestamp = response.get('timestamp_to_request')
         except ConnectionError:
-            logging.error('ConnectionError')
+            logger.error('ConnectionError')
             while connections_count < 5:
                 connections_count += 1
             else:
                 connections_count = 0
                 time.sleep(sleep_timer)
+                logger.error('Bot is disconnected for next 10 minutes')
             continue
         except ReadTimeout:
-            logging.error('ReadTimeout')
+            logger.error('ReadTimeout')
             continue
