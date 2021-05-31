@@ -75,8 +75,8 @@ if __name__ == '__main__':
             else:
                 timestamp = response.get('timestamp_to_request')
         except ConnectionError:
-            logger.exception()
             while connections_count < 5:
+                logger.exception()
                 connections_count += 1
             else:
                 connections_count = 0
