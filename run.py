@@ -11,13 +11,16 @@ from urllib.parse import urljoin
 
 class BotHandler(logging.Handler):
     def __init__(self, token, chat_id):
-        logging.Handler.__init__(self)
+        super().__init__()
         self.token = token
         self.chat_id = chat_id
 
     def emit(self, record):
         bot = telegram.Bot(self.token)
         bot.send_message(chat_id=self.chat_id, text=str(record))
+
+
+logger = logging.getLogger('BotHandler')
 
 
 def send_notification(token, chat_id, message):
@@ -52,7 +55,6 @@ if __name__ == '__main__':
     log_bot_token = os.getenv('LOGGER_TG_TOKEN')
     chat_id = os.getenv('TG_CHAT_ID')
 
-    logger = logging.getLogger('BotHandler')
     logger.setLevel(logging.INFO)
     logger.addHandler(BotHandler(log_bot_token, chat_id))
 
@@ -73,14 +75,14 @@ if __name__ == '__main__':
             else:
                 timestamp = response.get('timestamp_to_request')
         except ConnectionError:
-            logger.error('ConnectionError')
+            logger.exception()
             while connections_count < 5:
                 connections_count += 1
             else:
                 connections_count = 0
                 time.sleep(sleep_timer)
-                logger.error('Bot is disconnected for next 10 minutes')
+                logger.exception('Bot is disconnected for next 10 minutes')
             continue
         except ReadTimeout:
-            logger.error('ReadTimeout')
+            logger.exception()
             continue
