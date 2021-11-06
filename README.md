@@ -23,6 +23,37 @@ pip install -r requirements.txt
 python run.py
 ```
 
+### Запуск на Heroku
+
+[Установите Docker](https://docs.docker.com/engine/install/)
+
+Скачайте код из репозитория
+```
+git clone git@github.com:multipassport/dvmnbot.git
+```
+
+Войдите на Heroku
+```
+heroku login
+```
+
+Аутентифицируйтесь в Container Registry
+```
+heroku container:login
+```
+
+Зайдите в папку с приложением и создайте приложение на Heroky
+```
+cd dvmnbot
+heroku create
+```
+
+Отправьте образ, созданный докером, в свежесозданное приложение на Heroku и запустите его
+```
+heroku container:push bot
+heroku container:release web
+```
+
 ### Цель проекта
 
 Код написан в образовательных целях на онлайн-курсе для веб-разработчиков [dvmn.org](https://dvmn.org/).
